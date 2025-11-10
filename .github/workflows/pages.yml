@@ -4,7 +4,7 @@ name: GitHub Pages
 
 # La section "on:" contrôle dans quels cas ce workflow va s'exécuter
 #
-# Les possibilités de filtrage sont détaillées dans ces documentations :
+# Plus de documentation ici :
 # - https://docs.github.com/fr/actions/how-tos/write-workflows/choose-when-workflows-run/trigger-a-workflow
 # - https://docs.github.com/fr/actions/reference/workflows-and-actions/events-that-trigger-workflows#push
 on:
@@ -18,7 +18,7 @@ on:
 
 # La section "jobs:" indique ce qui se passe quand ce workflow s'exécute
 #
-# La syntaxe générale est détaillée dans cette documentation :
+# Plus de documentation ici :
 # https://docs.github.com/en/actions/reference/workflows-and-actions/workflow-syntax
 jobs:
   # Ce job construit les pages HTML et les empaquete dans un artefact
@@ -35,13 +35,13 @@ jobs:
     steps:
       # Certaines actions sont effectuées par des modules prêts à l'emploi,
       # fournis par GitHub ou des tierces parties...
-      - name: Récupération du dépôt git
+      - name: Check out git repository
         # Documentation sur https://github.com/actions/checkout/
         uses: actions/checkout@v5
 
       # ...tandis que d'autres exécutent un script spécifié par l'utilisateur,
       # ici du bash exécuté au sein d'une image Docker préparée par Sonny
-      - name: Construction du site web
+      - name: Build the static website
         run: |
           # On déplace les recettes à l'endroit attendu par astro-chef
           cp -r ./recettes $APP_DIR/recettes
@@ -57,14 +57,36 @@ jobs:
       #
       # - Ce premier job génère le site et empaquète les fichiers résultants
       #   au sein d'un artefact (grosso modo une archive compressée).
-      # - Un deuxième job récupère cet artefact et met le site en ligne. Il est
-      #   focalisé sur cette tâche est ne fait rien d'autre. Seul ce job est
-      #   doté des privilèges spéciaux permettant la mise en ligne d'un site.
-      - name: Génération de l'artefact
-        # Documentation sur https://github.com/actions/upload-pages-artifact
-        uses: actions/upload-pages-artifact@v4
+      # - Un deuxième job (ici "deploy") récupère cet artefact et met le site en
+      #   ligne. Il ne fait rien d'autre. Seul ce second job est doté des
+      #   privilèges spéciaux permettant la mise en ligne d'un site.
+
+      # FIXME: Je ne peux pas utiliser upload-pages-artifact pour l'instant, cf
+      #        https://gitlab.in2p3.fr/sonny.lion/astro-chef/-/merge_requests/1
+      #
+      # - name: Generate and upload the artifact
+      #   # Documentation sur https://github.com/actions/upload-pages-artifact
+      #   uses: actions/upload-pages-artifact@v4
+      #   with:
+      #     path: dist/
+      #
+      # ...du coup pour l'instant je contourne en réimplémentant cette action
+      # avec le vocabulaire limité du tar de busybox
+      - name: Build an artifact archive
+        # Référence: https://github.com/actions/upload-pages-artifact/blob/7b1f4a764d45c48632c6b24a0339c27f5614fb0b/action.yml#L27
+        run: |
+          tar c  \
+              -h  \
+              -C dist  \
+              -vf "$RUNNER_TEMP/artifact.tar"  \
+              .
+      - name: Upload the artifact
+        uses: actions/upload-artifact@v5
         with:
-          path: dist/
+          name: github-pages
+          path: ${{ runner.temp }}/artifact.tar
+          retention-days: 1
+          if-no-files-found: error
 
   # Ce job met en ligne les pages HTML
   deploy:
