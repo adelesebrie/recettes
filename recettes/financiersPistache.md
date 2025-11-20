@@ -26,7 +26,7 @@ conseils:
 
 # Préparation
 
-1. Mélangez tous les ingrédients sauf les oeufs
+1. Mélangez tous les ingrédients sauf les œufs
 2. Battez les blancs en neige.
 3. Incorporez delicatement
 4. Faites cuire au four préchauffé à 160° pendant 20 min
