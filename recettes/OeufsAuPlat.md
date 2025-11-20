@@ -1,7 +1,7 @@
 ---
 titre: "Oeuf au plat"
 description: "Une recette simple et rapide pour cuire des oeufs au plat."
-auteur: "AD"
+auteur: "Aurélie Douet"
 date: 2025-11-20
 temps_de_préparation: "0 min"
 temps_de_cuisson: "4 min"
